@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <signal.h>
+
+void sigint_handler(int sig)
+{
+    exit(1);
+}
+
+int main()
+{
+    while(1)
+    {
+    int fd[2];
+    pipe(fd);
+    pid_t pid = fork();
+    int number;
+    int buffer;
+    int i, c = 0;
+    
+    if(pid == 0)
+    {
+        printf("Enter number: ");
+        scanf("%d", &number);
+        close(fd[0]);    //close read
+        write(fd[1], &number, sizeof(number));
+        exit(EXIT_SUCCESS);
+    }
+    if(pid > 0)
+    {
+        wait(NULL);
+        close(fd[1]);  //close write
+        read(fd[0], &buffer, sizeof(buffer));
+        close(fd[0]);   //close read
+        
+        for (i = 1; i <= buffer; i++) 
+        {
+        if (buffer % i == 0) 
+        {
+         c++;
+        }
+        }//end for
+
+        if (c == 2) 
+        {
+        printf("Prime Number\n");
+        printf("\n");
+        }
+        else 
+        {
+         printf("Not A Prime Number\n");
+         printf("\n");
+        }
+    }// end if pid > 0
+    }// end while
+    
+}// end int main
