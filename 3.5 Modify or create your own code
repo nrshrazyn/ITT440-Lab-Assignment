@@ -48,12 +48,15 @@ int main()
         {
         printf("Prime Number\n");
         printf("\n");
+        exit(1);
         }
         else 
         {
          printf("Not A Prime Number\n");
          printf("\n");
+         exit(1);
         }
+        return 0;
     }// end if pid > 0
     }// end while
     
