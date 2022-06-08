@@ -2,7 +2,7 @@ import socket
 import sys
 import json
 
-mydata = {"id": 505012, "name": "Azizi", "age": "29"}
+mydata = {"id": 2020898436, "name": "Aziyan", "age": "21"}
 sendData = json.dumps(mydata)
 
 s = socket.socket()
