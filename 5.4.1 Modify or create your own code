@@ -1,0 +1,58 @@
+//server
+import socket
+import os
+from _thread import *
+
+ServerSocket = socket.socket()
+host = ''
+port = 9999
+ThreadCount = 0
+try:
+    ServerSocket.bind((host, port))
+except socket.error as e:
+    print(str(e))
+print("I Am Waiting For The Connection ...\n")
+ServerSocket.listen(5)
+
+def threaded_client(connection):
+    connection.send(str.encode('Welcome To The Storage Server'))
+    while True:
+        data = connection.recv(2048)
+        message = data.decode()
+        if message.split(" ")[0] == "Quit":
+            print("Client ", address[0], "disconnected...\n")
+            Client.close()
+        elif message.split(" ")[0] == "Upload":
+            f = open(message.split(" ")[1],"wb")
+            print("File Is Uploading On Server...")
+            buffer = connection.recv(2048)
+            print("File Successful Upload On Server!\n")
+            connection.send(str.encode('Server: Successful Uploading'))
+            f.write(buffer)
+            f.close()
+            message = buffer.decode()
+        elif message.split(" ")[0] == "Download":
+            filename = message.split(" ")[1]
+            print('Download File Named', filename)
+            if os.path.isfile(filename):
+                with open (filename, "rb") as f:
+                    contents = f.read(2048)
+                    while contents:
+                        connection.send(contents)
+                        contents = f.read(2048)
+                    print("File Is Sending To Client...\n")
+                    connection.send(str.encode('Server: Successful Sending'))
+                f.close()
+        else:
+            print("Not A Valid Command, Try Again With Another Command\n")
+            connection.send(bytes("Not A Valid Command", "utf-8"))
+            break
+while True:
+    Client, address = ServerSocket.accept()
+    print('Connected to: ' + address[0] + ':' + str(address[1]))
+    start_new_thread(threaded_client, (Client, ))
+    ThreadCount += 1
+    print('Thread Number: ' + str(ThreadCount))
+ServerSocket.close()
+
+
