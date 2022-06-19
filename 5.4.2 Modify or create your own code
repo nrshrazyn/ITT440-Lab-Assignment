@@ -1,0 +1,63 @@
+//client
+import socket
+import os
+
+clientSocket = socket.socket()
+host = '192.168.121.5'
+port = 9999
+
+print('Waiting For Connection ...')
+try:
+    clientSocket.connect((host, port))
+    word = clientSocket.recv(2048)
+    print(word)
+except socket.error as e:
+    print(str(e))
+def menu():
+    print("Please Choose The Command Below: \n")
+    print("1. Upload <filename>\n")
+    print("2. Download <filename>\n")
+    print("3. Quit\n")
+
+path = os.getcwd()
+menu()
+while True:
+    cmd_input = input("Type a command >> ")
+    clientSocket.send(str.encode(cmd_input))
+    if cmd_input.split(" ")[0] == "Upload":
+        filename = cmd_input.split(" ")[1]
+        if os.path.isfile(filename):
+            clientSocket.sendall(bytes(cmd_input, "utf-8"))
+            f = open(filename, "rb")
+            contents = f.read(2048)
+            clientSocket.send(contents)
+            word = clientSocket.recv(2048)
+            print(word)
+            print("File Successful Stored On Server\n")
+            f.close()
+        else:
+            print("Invalid File\n")
+    elif cmd_input.split(" ")[0] == "Download":
+        clientSocket.sendall(bytes(cmd_input, "utf-8"))
+        buffer = clientSocket.recv(2048)
+        if buffer.decode() == "No file found":
+            os.system("cls")
+            menu()
+            print("Invalid File\n")
+        else:
+            word = clientSocket.recv(2048)
+            print(word)
+            print("Successful Receive The File From The Server\n")
+            f = open(cmd_input.split(" ")[1], "wb")
+            f.write(buffer)
+            f.close()
+            message = buffer.decode()
+    elif cmd_input.split(" ")[0] == "Quit":
+        print("Disconnected From The Server")
+        clientSocket.sendall(bytes("Quit", "utf-8"))
+        clientSocket.close()
+        break
+    else:
+        print("Invalid command. Try again.\n")
+        menu()
+
