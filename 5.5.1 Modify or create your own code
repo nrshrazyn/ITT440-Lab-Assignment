@@ -2,11 +2,15 @@
 import socket
 import os
 from _thread import *
+from cryptography.fernet import Fernet
 
 ServerSocket = socket.socket()
 host = ''
 port = 9999
 ThreadCount = 0
+key = Fernet.generate_key() #key generation
+with open('filekey.key', 'wb') as filekey:
+    filekey.write(key)
 try:
     ServerSocket.bind((host, port))
 except socket.error as e:
@@ -23,12 +27,16 @@ def threaded_client(connection):
             print("Client ", address[0], "disconnected...\n")
             Client.close()
         elif message.split(" ")[0] == "Upload":
-            f = open(message.split(" ")[1],"wb")
+            fernet = Fernet(key)
+            with open(message.split(" ")[1], 'rb') as enc_file:
+                encrypted = enc_file.read()
+            decrypted = fernet.decrypt(encrypted)
             print("File Is Uploading On Server...")
             buffer = connection.recv(2048)
             print("File Successful Upload On Server!\n")
             connection.send(str.encode('Server: Successful Uploading'))
-            f.write(buffer)
+            with open(message.split(" ")[1], 'wb') as dec_file:
+                dec_file.write(decrypted)
             f.close()
             message = buffer.decode()
         elif message.split(" ")[0] == "Download":
