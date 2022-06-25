@@ -1,10 +1,14 @@
 //client
 import socket
 import os
+from cryptography.fernet import Fernet
 
 clientSocket = socket.socket()
 host = '192.168.121.5'
 port = 9999
+key = Fernet.generate_key() #key generation
+with open('filekey.key', 'wb') as filekey:
+    filekey.write(key)
 
 print('Waiting For Connection ...')
 try:
@@ -27,10 +31,18 @@ while True:
     if cmd_input.split(" ")[0] == "Upload":
         filename = cmd_input.split(" ")[1]
         if os.path.isfile(filename):
-            clientSocket.sendall(bytes(cmd_input, "utf-8"))
-            f = open(filename, "rb")
-            contents = f.read(2048)
-            clientSocket.send(contents)
+            with open('filekey.key', 'rb') as filekey:
+                key = filekey.read()
+            fernet = Fernet(key)
+            with open(filename, 'rb') as file:
+                original = file.read()
+            encrypted = fernet.encrypt(original)
+            with open(filename, 'wb') as encrypted_file:
+                encrypted_file.write(encrypted)
+            #clientSocket.sendall(bytes(cmd_input, "utf-8"))
+            #f = open(filename, "rb")
+            #contents = f.read(2048)
+            clientSocket.send(encrypted)
             word = clientSocket.recv(2048)
             print(word)
             print("File Successful Stored On Server\n")
